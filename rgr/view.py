@@ -22,6 +22,25 @@ class View:
                 print("Please enter a valid option number (1 to 8)")
                 time.sleep(2)
 
+    def search_menu(self):
+        while True:
+            print("\nSelect query type:")
+            print("1. Information about users and their rentals")
+            print("2. Information about rentals and reservations")
+            print("3. Information about rating and rental")
+            print("4. Back to main menu")
+
+            choice = input("Enter your choice (1-4): ")
+
+            if choice == '4':
+                return None, None
+
+            if choice in ('1', '2', '3'):
+                filter_conditions = self.search_data_input(choice)
+                return choice, filter_conditions
+            else:
+                print("Please enter a valid option number (1 to 4)")
+
     def show_message(self, message):
         print(message)
         time.sleep(2)
@@ -89,25 +108,51 @@ class View:
             except ValueError as e:
                 print(f"Error: {e}")
 
-    def search_data_input(self):
+    def search_data_input(self, choice):
         while True:
             try:
+
+                filter_conditions = {}
+
                 print("\nEnter search parameters:")
 
                 price_min = input("Minimum price: ")
                 price_max = input("Maximum price: ")
-                name = input("Name (LIKE pattern): ")
-                email = input("Email (LIKE pattern): ")
-                title = input("Title (LIKE pattern): ")
+                if price_min:
+                    filter_conditions['price_min'] = int(price_min)
+                if price_max:
+                    filter_conditions['price_max'] = int(price_max)
 
-                filter_conditions = {
-                    'price_min': int(price_min) if price_min else None,
-                    'price_max': int(price_max) if price_max else None,
-                    'name': name if name else None,
-                    'email': email if email else None,
-                    'title': title if title else None,
-                    'group_by': ['t1.user_id', 't2.rental_id']
-                }
+                if choice == '1' or choice == '2':
+                    title = input("Title (LIKE pattern): ")
+                    if title:
+                        filter_conditions['title'] = title
+
+
+                if choice == '1':
+                    name = input("Name (LIKE pattern): ")
+                    email = input("Email (LIKE pattern): ")
+
+                    if name:
+                        filter_conditions['name'] = name
+                    if email:
+                        filter_conditions['email'] = email
+
+                if choice == '3':
+                    rating_min = input("Minimum rating: ")
+                    rating_max = input("Maximum rating: ")
+                    if rating_min:
+                        filter_conditions['rating_min'] = int(rating_min)
+                    if rating_max:
+                        filter_conditions['rating_max'] = int(rating_max)
+
+                filter_conditions['group_by'] = (
+                    ['t1.user_id', 't2.rental_id'] if choice == '1' else
+                    ['t1.rental_id', 't2.reservation_id'] if choice == '2' else
+                    ['t1.rental_id', 't2.review_id']
+                )
+
                 return filter_conditions
+
             except ValueError as e:
                 print(f"Error: {e}")

@@ -128,33 +128,70 @@ class Model:
 
         self.conn.commit()
 
-    def search_data(self, table1, table2, filter_conditions):
+    def search_data(self, table1, table2, query_type, filter_conditions):
         c = self.conn.cursor()
-
-        query = f"""
-            SELECT * 
-            FROM "public"."{table1}" t1
-            JOIN "public"."{table2}" t2 ON t1.user_id = t2.user_id
-            WHERE 1=1
-        """
-
         params = []
 
-        if 'price_min' in filter_conditions and 'price_max' in filter_conditions:
-            query += " AND t2.price BETWEEN %s AND %s"
-            params.extend([filter_conditions['price_min'], filter_conditions['price_max']])
+        if query_type == '1':
+            query = f"""
+                SELECT * 
+                FROM "public"."{table1}" t1
+                JOIN "public"."{table2}" t2 ON t1.user_id = t2.user_id
+                WHERE 1=1
+            """
+            if 'price_min' in filter_conditions and 'price_max' in filter_conditions:
+                query += " AND t2.price BETWEEN %s AND %s"
+                params.extend([filter_conditions['price_min'], filter_conditions['price_max']])
 
-        if 'name' in filter_conditions:
+            if 'title' in filter_conditions and 'title' in query:
+                query += " AND t2.title LIKE %s"
+                params.append(f"%{filter_conditions['title']}%")
+
+        elif query_type == '2':
+            query = f"""
+                SELECT * 
+                FROM "public"."{table1}" t1
+                JOIN "public"."{table2}" t2 ON t1.rental_id = t2.rental_id
+                WHERE 1=1
+            """
+            if 'price_min' in filter_conditions and 'price_max' in filter_conditions:
+                query += " AND t1.price BETWEEN %s AND %s"
+                params.extend([filter_conditions['price_min'], filter_conditions['price_max']])
+
+            if 'title' in filter_conditions and 'title' in query:
+                query += " AND t1.title LIKE %s"
+                params.append(f"%{filter_conditions['title']}%")
+
+        elif query_type == '3':
+            query = f"""
+                SELECT * 
+                FROM "public"."{table1}" t1
+                JOIN "public"."{table2}" t2  ON t1.rental_id = t2.rental_id
+                WHERE 1=1
+            """
+
+            if 'price_min' in filter_conditions and 'price_max' in filter_conditions:
+                query += " AND t1.price BETWEEN %s AND %s"
+                params.extend([filter_conditions['price_min'], filter_conditions['price_max']])
+
+            if 'title' in filter_conditions and 'title' in query:
+                query += " AND t1.title LIKE %s"
+                params.append(f"%{filter_conditions['title']}%")
+
+        else:
+            raise ValueError("Incorrect query")
+
+        if 'name' in filter_conditions and 'name' in query:
             query += " AND t1.name LIKE %s"
             params.append(f"%{filter_conditions['name']}%")
 
-        if 'email' in filter_conditions:
+        if 'email' in filter_conditions and 'email' in query:
             query += " AND t1.email LIKE %s"
             params.append(f"%{filter_conditions['email']}%")
 
-        if 'title' in filter_conditions:
-            query += " AND t2.title LIKE %s"
-            params.append(f"%{filter_conditions['title']}%")
+        if 'rating_min' in filter_conditions and 'rating_max' in filter_conditions:
+            query += " AND t2.rating BETWEEN %s AND %s"
+            params.extend([filter_conditions['rating_min'], filter_conditions['rating_max']])
 
         if 'group_by' in filter_conditions:
             query += " GROUP BY " + ", ".join(filter_conditions['group_by'])

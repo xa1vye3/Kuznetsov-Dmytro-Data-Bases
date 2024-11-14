@@ -104,7 +104,18 @@ class Controller:
         self.view.show_message(f"Data for table {table_name} has been generated successfully")
 
     def search_data(self):
-        result = self.model.search_data('users', 'rental', self.view.search_data_input())
+        choice, filters = self.view.search_menu()
+        if choice == '1':
+            table1 = 'users'
+            table2 = 'rental'
+        elif choice == '2':
+            table1 = 'rental'
+            table2 = 'reservation'
+        else:
+            table1 = 'rental'
+            table2 = 'reviews'
+
+        result = self.model.search_data(table1=table1, table2=table2, query_type=choice, filter_conditions=filters)
 
         if result:
             print("\nSearch results:")
